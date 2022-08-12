@@ -2,7 +2,7 @@ import cluster from 'node:cluster'
 import os from 'node:os'
 import { MysqlClient } from './mysql-client.mjs';
 
-export async function invokePrimary(totalRows, idLength) {
+export async function invokePrimary(totalRows) {
     if (!cluster.isPrimary) {
         return;
     }
@@ -12,12 +12,12 @@ export async function invokePrimary(totalRows, idLength) {
     client.closeConnection();
 
     const cpus = os.cpus();
-    const workers = cpus.map(_ => cluster.fork({ ROWS: totalRows / cpus.length, ID_LENGTH: idLength }))
-    const promises = []
-    const time = {}
-    const stats = []
-    const continueErrorCounts = []
-    let errorCount = 0
+    const workers = cpus.map(_ => cluster.fork({ ROWS: totalRows / cpus.length }));
+    const promises = [];
+    const time = {};
+    const stats = [];
+    const continueErrorCounts = [];
+    let errorCount = 0;
     for (const worker of workers) {
         const promise = new Promise((resolve, reject) => {
             worker

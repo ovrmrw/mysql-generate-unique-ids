@@ -12,9 +12,9 @@ const idLength = 8;
 
 async function main() {
     if (cluster.isPrimary) {
-        await invokePrimary(totalRows, idLength);
+        await invokePrimary(totalRows);
     } else {
-        await invokeWorker();
+        await invokeWorker(idLength);
     }
 }
 

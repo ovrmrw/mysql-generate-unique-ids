@@ -1,7 +1,7 @@
 import cluster from 'node:cluster';
 import { MysqlClient } from './mysql-client.mjs';
 
-export async function invokeWorker() {
+export async function invokeWorker(idLength) {
     if (!cluster.isWorker) {
         return;
     }
@@ -14,7 +14,6 @@ export async function invokeWorker() {
     let continueErrorCount = 0;
     let maxContinueErrorCount = 0;
 
-    const idLength = parseInt(process.env.ID_LENGTH);
     const rows = parseInt(process.env.ROWS);
     let i = 0;
     while (i < rows) {
