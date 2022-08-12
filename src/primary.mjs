@@ -12,7 +12,8 @@ export async function invokePrimary(totalRows) {
     client.closeConnection();
 
     const cpus = os.cpus();
-    const workers = cpus.map(_ => cluster.fork({ ROWS: totalRows / cpus.length }));
+    const parallel = Math.min(cpus.length, 10);
+    const workers = Array.from(Array(parallel)).map(_ => cluster.fork({ ROWS: totalRows / parallel }));
     const promises = [];
     const time = {};
     const stats = [];
