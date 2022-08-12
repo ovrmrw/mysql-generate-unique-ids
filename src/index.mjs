@@ -1,7 +1,4 @@
 import cluster from 'node:cluster';
-import dotenv from 'dotenv';
-dotenv.config();
-
 import { invokePrimary } from './primary.mjs';
 import { invokeWorker } from './worker.mjs';
 

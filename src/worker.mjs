@@ -1,6 +1,11 @@
 import cluster from 'node:cluster';
 import { MysqlClient } from './mysql-client.mjs';
 
+/**
+ * 
+ * @param {number} idLength 
+ * @returns 
+ */
 export async function invokeWorker(idLength) {
     if (!cluster.isWorker) {
         return;

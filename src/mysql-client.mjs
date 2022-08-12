@@ -1,14 +1,10 @@
 import mysql from 'mysql2';
+import * as config from './config.mjs';
 import { getRandomId } from './utils.mjs';
 
 export class MysqlClient {
     constructor() {
-        this.connection = mysql.createConnection({
-            host: process.env.DB_HOST,
-            user: process.env.DB_USER,
-            password: process.env.DB_PASSWORD,
-            database: process.env.DB_DATABASE
-        });
+        this.connection = mysql.createConnection(config.db);
     }
 
     closeConnection() {
@@ -45,6 +41,11 @@ export class MysqlClient {
         });
     }
 
+    /**
+     * 
+     * @param {number} length 
+     * @returns 
+     */
     async createUniqueId(length) {
         const startTime = Date.now();
         const uniqueId = getRandomId(length);

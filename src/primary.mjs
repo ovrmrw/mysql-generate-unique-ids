@@ -1,7 +1,12 @@
-import cluster from 'node:cluster'
-import os from 'node:os'
+import cluster from 'node:cluster';
+import os from 'node:os';
 import { MysqlClient } from './mysql-client.mjs';
 
+/**
+ * 
+ * @param {number} totalRows 
+ * @returns 
+ */
 export async function invokePrimary(totalRows) {
     if (!cluster.isPrimary) {
         return;
