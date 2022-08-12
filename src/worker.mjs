@@ -1,18 +1,13 @@
 import cluster from 'node:cluster';
-import mysql from 'mysql2/promise';
+import { MysqlClient } from './mysql-client.mjs';
 
 export async function invokeWorker() {
     if (!cluster.isWorker) {
         return;
     }
 
-    const connection = await mysql.createConnection({
-        host: process.env.DB_HOST,
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_DATABASE
-    });
-
+    const client = new MysqlClient();
+    
     const time = {};
     const stats = [];
     let errorCount = 0;
@@ -24,7 +19,7 @@ export async function invokeWorker() {
     let i = 0;
     while (i < rows) {
         try {
-            const { uniqueId, processingTime } = await createUniqueId(connection, idLength);
+            const { uniqueId, processingTime } = await client.createUniqueId(idLength);
             if (continueErrorCount > maxContinueErrorCount) {
                 maxContinueErrorCount = continueErrorCount
             }
@@ -50,40 +45,8 @@ export async function invokeWorker() {
             }
         }
     }
-    connection.end();
+    client.closeConnection();
     const message = { stats, time, errorCount, continueErrorCount: maxContinueErrorCount };
     process.send(JSON.stringify(message));
     process.exit(0);
-}
-
-/**
- * 
- * @param {mysql.Connection} connection 
- * @param {number} idLength 
- * @returns 
- */
-async function createUniqueId(connection, idLength) {
-    const startTime = Date.now();
-    const uniqueId = getRandomID(idLength);
-    const query = `INSERT INTO unique_ids (unique_id) VALUES ('${uniqueId}');`;
-    // const query = `INSERT INTO unique_ids (unique_id) VALUES (SUBSTR(MD5(RAND()), 1, ${idLength}))`
-    const [result] = await connection.execute(query);
-    const processingTime = Date.now() - startTime;
-    return { uniqueId, processingTime };
-}
-
-/**
- * 
- * @param {number} length 
- * @returns 
- */
-function getRandomID(length) {
-    const result = '';
-    const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    const charactersLength = characters.length;
-    for (let i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() *
-            charactersLength));
-    }
-    return result;
 }

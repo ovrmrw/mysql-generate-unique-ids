@@ -1,20 +1,17 @@
 import cluster from 'node:cluster'
 import os from 'node:os'
-import mysql from 'mysql2/promise';
+import { MysqlClient } from './mysql-client.mjs';
 
-export async function invokePrimary() {
+export async function invokePrimary(totalRows, idLength) {
     if (!cluster.isPrimary) {
         return;
     }
 
-    await createTable()
+    const client = new MysqlClient();
+    await client.createTable();
+    client.closeConnection();
 
-    // const totalRows = 10000 * 10000
-    const totalRows = 1 * 10000
-    // const totalRows = 10
-    const idLength = 8
-
-    const cpus = os.cpus(); // length: 10
+    const cpus = os.cpus();
     const workers = cpus.map(_ => cluster.fork({ ROWS: totalRows / cpus.length, ID_LENGTH: idLength }))
     const promises = []
     const time = {}
@@ -53,22 +50,4 @@ export async function invokePrimary() {
     console.log({ time })
     console.log({ errorCount });
     console.log({ continueErrorCounts });
-}
-
-async function createTable() {
-    const connection = await mysql.createConnection({
-        host: process.env.DB_HOST,
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_DATABASE
-    });
-    // await connection.execute('DROP TABLE IF EXISTS unique_ids;'); // テーブル削除
-    const createTable = `
-        CREATE TABLE IF NOT EXISTS unique_ids (
-            id bigint(20) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-            unique_id varchar(16) NOT NULL UNIQUE
-        );
-    `;
-    await connection.execute(createTable);
-    connection.end();
 }
